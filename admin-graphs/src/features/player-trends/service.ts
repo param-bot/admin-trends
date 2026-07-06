@@ -6,14 +6,21 @@ import type {
 import { fetchPlayerTrends } from "./api"
 import { buildMockPlayerTrends } from "./mock-data"
 
-// DEPOSIT/WITHDRAW/GGR are live on the real backend. BET/WIN are still
-// Phase 2 — the real endpoint 501s them — so they always use mock data
-// regardless of VITE_USE_MOCK_API, until the backend ships them too.
-const LIVE_METRICS: ReadonlySet<TrendMetric> = new Set(["DEPOSIT", "WITHDRAW", "GGR"])
+// All 5 metrics are live on the real backend now (DEPOSIT/WITHDRAW/GGR shipped
+// first, BET/WIN followed). LIVE_METRICS stays as the single per-metric on/off
+// switch rather than being deleted outright — a 6th metric, or a backend
+// regression on one of these, only needs an edit here, not at every call site.
+const LIVE_METRICS: ReadonlySet<TrendMetric> = new Set([
+  "DEPOSIT",
+  "WITHDRAW",
+  "GGR",
+  "BET",
+  "WIN",
+])
 
 // Force-mock switch for local dev without a reachable backend. Flip to
 // "false" once VITE_API_BASE_URL points at a real deployment to exercise the
-// live calls — BET/WIN ignore this and stay mocked.
+// live calls.
 const USE_MOCK_API = import.meta.env.VITE_USE_MOCK_API !== "false"
 const MOCK_LATENCY_MS = 400
 

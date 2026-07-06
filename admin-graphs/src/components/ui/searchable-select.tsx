@@ -114,7 +114,7 @@ export function SearchableSelect({
             value={searchValue}
             onChange={(event) => onSearchValueChange(event.target.value)}
             placeholder={searchPlaceholder}
-            className="h-8 border-0 px-0 shadow-none focus-visible:ring-0 bg-transparent"
+            className="h-8 border-0 px-2 shadow-none focus-visible:ring-0"
           />
         </div>
         <div className="max-h-60 overflow-y-auto p-1" onScroll={handleScroll}>

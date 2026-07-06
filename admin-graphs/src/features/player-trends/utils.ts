@@ -10,6 +10,7 @@ import {
   type TrendSliceBy,
   type TrendVertical,
 } from "@/api/types/player-trends"
+import type { ChartType } from "./chart-types"
 import type { TrendFilterState } from "./types"
 
 export const UNSLICED_KEY = "value"
@@ -66,14 +67,16 @@ export function defaultDateRange(days = 30): {
   }
 }
 
-// Opening the full view carries the card's current filters over as query
-// params, so the new tab starts on the same view instead of resetting to
-// defaults — parseFiltersFromSearchParams below is the other half of this
-// round-trip, kept in the same file so the two can't drift out of sync.
+// Opening the full view carries the card's current filters AND chart type over
+// as query params, so the new tab starts on the same view instead of resetting
+// to defaults — parseFiltersFromSearchParams below (and the ?chartType= read in
+// metric-trend-page.tsx) is the other half of this round-trip, kept in the same
+// file so the two can't drift out of sync.
 export function buildMetricTrendPath(
   metric: TrendMetric,
   accountId: string,
-  filters?: TrendFilterState
+  filters?: TrendFilterState,
+  chartType?: ChartType
 ): string {
   const params = new URLSearchParams({ accountId })
 
@@ -86,6 +89,10 @@ export function buildMetricTrendPath(
     if (filters.vertical) params.set("vertical", filters.vertical)
     if (filters.providerId) params.set("providerId", filters.providerId)
     if (filters.gameType) params.set("gameType", filters.gameType)
+  }
+
+  if (chartType) {
+    params.set("chartType", chartType)
   }
 
   return `/trends/${metric}?${params.toString()}`

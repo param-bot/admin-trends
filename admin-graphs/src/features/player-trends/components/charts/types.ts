@@ -1,4 +1,4 @@
-import { countKeyFor, type ChartRow } from "../../utils"
+import type { ChartRow } from "../../utils"
 
 export interface SeriesChartProps {
   rows: ChartRow[]
@@ -6,6 +6,11 @@ export interface SeriesChartProps {
   color: string
   valueLabel: string
   height?: number
+  // What a point's count actually counts — "bets" vs "txns" — shown in
+  // tooltips alongside the value. Defaults to "txns" so a caller that
+  // doesn't care (e.g. a future chart type without a tooltip) doesn't have
+  // to pass it.
+  countLabel?: string
 }
 
 // Curated brand tokens for the common case (<= 5 slices). sliceBy can return
@@ -45,32 +50,3 @@ export function getSeriesColor(key: string, index: number): string {
   return `oklch(0.7 0.16 ${hue.toFixed(1)})`
 }
 
-export const TOOLTIP_STYLE = {
-  background: "var(--popover)",
-  borderColor: "var(--border)",
-  borderRadius: "var(--radius-md)",
-  fontSize: 12,
-}
-
-function formatNumber(value: number): string {
-  return value.toLocaleString(undefined, { maximumFractionDigits: 2 })
-}
-
-// Shared by Line/Bar/Area tooltips — shows the real transaction count that
-// rides along with each point (see countKeyFor) instead of just the value,
-// so hovering a bucket answers "how much" and "how many" at once.
-export function formatValueWithCount(
-  value: unknown,
-  name: unknown,
-  item: { dataKey?: unknown; payload?: ChartRow }
-): [string, string] {
-  const numericValue = typeof value === "number" ? value : Number(value) || 0
-  const dataKey = item.dataKey != null ? String(item.dataKey) : undefined
-  const count = dataKey ? item.payload?.[countKeyFor(dataKey)] : undefined
-
-  const formatted = formatNumber(numericValue)
-  return [
-    typeof count === "number" ? `${formatted} (${count} txns)` : formatted,
-    String(name),
-  ]
-}

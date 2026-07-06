@@ -83,6 +83,7 @@ export function PieTrendChart({
   color,
   valueLabel,
   height = 260,
+  countLabel = "txns",
 }: SeriesChartProps) {
   const [activeKey, setActiveKey] = useState<string | null>(null)
   const isSingleSeries = seriesKeys.length === 1 && seriesKeys[0] === UNSLICED_KEY
@@ -130,9 +131,9 @@ export function PieTrendChart({
               formatter={(value, name, item: { payload?: PieSlice }) => {
                 const numericValue = typeof value === "number" ? value : Number(value) || 0
                 const count = item.payload?.count
-                const countLabel = typeof count === "number" ? `, ${count} txns` : ""
+                const countSuffix = typeof count === "number" ? `, ${count} ${countLabel}` : ""
                 return [
-                  `${formatNumber(numericValue)} (${((numericValue / total) * 100).toFixed(1)}%${countLabel})`,
+                  `${formatNumber(numericValue)} (${((numericValue / total) * 100).toFixed(1)}%${countSuffix})`,
                   name,
                 ]
               }}

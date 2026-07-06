@@ -10,12 +10,8 @@ import {
 } from "recharts"
 
 import { UNSLICED_KEY } from "../../utils"
-import {
-  formatValueWithCount,
-  getSeriesColor,
-  TOOLTIP_STYLE,
-  type SeriesChartProps,
-} from "./types"
+import { TrendTooltipContent } from "./TrendTooltipContent"
+import { getSeriesColor, type SeriesChartProps } from "./types"
 
 export function BarTrendChart({
   rows,
@@ -23,6 +19,7 @@ export function BarTrendChart({
   color,
   valueLabel,
   height = 260,
+  countLabel = "txns",
 }: SeriesChartProps) {
   const isSingleSeries =
     seriesKeys.length === 1 && seriesKeys[0] === UNSLICED_KEY
@@ -39,9 +36,8 @@ export function BarTrendChart({
         />
         <YAxis tick={{ fontSize: 11 }} width={48} />
         <Tooltip
-          contentStyle={TOOLTIP_STYLE}
+          content={<TrendTooltipContent countLabel={countLabel} />}
           cursor={{ fill: "var(--muted)" }}
-          formatter={formatValueWithCount}
         />
         {!isSingleSeries && <Legend wrapperStyle={{ fontSize: 12 }} />}
         {seriesKeys.map((key, index) => (

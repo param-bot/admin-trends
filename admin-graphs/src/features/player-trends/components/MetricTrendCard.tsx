@@ -54,7 +54,7 @@ export function MetricTrendCard({ accountId, config }: MetricTrendCardProps) {
               onChange={setChartType}
             />
             <Link
-              to={buildMetricTrendPath(config.metric, accountId, filters)}
+              to={buildMetricTrendPath(config.metric, accountId, filters, chartType)}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`Open ${config.title} in full view`}
@@ -88,6 +88,7 @@ export function MetricTrendCard({ accountId, config }: MetricTrendCardProps) {
             seriesKeys={seriesKeys}
             color={config.color}
             valueLabel={config.title}
+            countLabel={config.countLabel}
           />
         )}
       </CardContent>

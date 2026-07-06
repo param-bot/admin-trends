@@ -1,6 +1,7 @@
 // Mirrors GET /api/player-trends/:accId — see player-trends-api-reference.md.
-// DEPOSIT/WITHDRAW/GGR are live today; BET/WIN are still Phase 2 (501 on the
-// real backend) and stay mock-only — see service.ts's LIVE_METRICS gate.
+// All 5 metrics are live now — see service.ts's LIVE_METRICS gate, kept as a
+// single per-metric switch in case a future metric or a backend regression
+// needs one flipped back to mock.
 
 export const TREND_METRICS = [
   "DEPOSIT",
@@ -15,9 +16,10 @@ export const TREND_INTERVALS = ["HOUR", "DAY", "WEEK", "MONTH"] as const
 export type TrendInterval = (typeof TREND_INTERVALS)[number]
 
 // GAME_TYPE isn't in the real backend's sliceBy enum at all yet (blocked on a
-// lookup table — see the api reference doc's §9 roadmap), for any metric. It
-// only exists here for the still-mocked BET/WIN cards. Never sent to the
-// real endpoint (GGR's config omits it — see LIVE_GAMEPLAY_SLICE_BY).
+// lookup table — see the api reference doc's §9 roadmap), for any metric. No
+// live MetricConfig (constants.ts) offers it as a "Break down by" option —
+// it only still exists here/in mock-data.ts in case a future metric needs
+// the mock path. Never sent to the real endpoint.
 export const TREND_SLICE_BY = [
   "NONE",
   "GAME_TYPE",
@@ -44,13 +46,13 @@ export interface PlayerTrendsQuery {
   interval?: TrendInterval
   currencyType?: TrendCurrencyType
   sliceBy?: TrendSliceBy
-  // Accepted by the real endpoint but currently a no-op on DEPOSIT/WITHDRAW —
-  // reserved for BET/WIN/GGR once those ship. Still meaningful for the mock
-  // path on those metrics today.
+  // Accepted by the real endpoint but a no-op on DEPOSIT/WITHDRAW — meaningful
+  // on BET/WIN/GGR, which all carry the full tbl_bet_summary dimension set.
   vertical?: TrendVertical
   providerId?: string
-  // Not a real query param at all yet (no GAME_TYPE lookup table server-side)
-  // — only ever read by the mock generator for BET/WIN/GGR.
+  // Not a real query param at all (no GAME_TYPE lookup table server-side, for
+  // any metric) — only ever read by the mock generator, and no live
+  // MetricConfig exposes a UI control that would set this.
   gameType?: string
 }
 

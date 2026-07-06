@@ -1,10 +1,11 @@
 # Player Trends Dashboard — Context
 
 Frontend for a single-player analytics dashboard: 5 trend graphs (Deposit, Withdraw,
-Bet, Win, GGR), each with its own filters. DEPOSIT, WITHDRAW, and GGR are wired to the
-real backend; BET/WIN are still Phase 2 on the backend (not built yet) and stay on mock
-data until they ship — flipping them over later is meant to be a one-line change, not a
-rewrite (see "Mock-to-real switch" below).
+Bet, Win, GGR), each with its own filters. **All 5 are wired to the real backend now**
+— Deposit/Withdraw/GGR shipped first, Bet/Win followed. The mock system (see
+"Mock-to-real switch" below) stays in the codebase as a local-dev fallback and as the
+template for whatever the *next* metric turns out to be, not because anything is
+still mocked today.
 
 ## Backend contract (as actually shipped — player-trends-api-reference.md)
 
@@ -17,21 +18,22 @@ rework.
 GET /api/player-trends/:accId?metric=&startDate=&endDate=&interval=&currencyType=&sliceBy=
 ```
 
-- `metric` (required, singular): `DEPOSIT | WITHDRAW | BET | WIN | GGR` — `DEPOSIT`,
-  `WITHDRAW`, and `GGR` return data today; `BET`/`WIN` still respond `501` (Phase 2).
+- `metric` (required, singular): `DEPOSIT | WITHDRAW | BET | WIN | GGR` — all 5 return
+  real data today.
 - `interval`: `HOUR | DAY | WEEK | MONTH`.
 - `sliceBy`: `NONE | CURRENCY | PROVIDER | VERTICAL` on the real API — note **no
   `GAME_TYPE`** (blocked server-side on a lookup table that doesn't exist yet), for any
   metric. For DEPOSIT/WITHDRAW specifically, only `NONE`/`CURRENCY` actually do
-  anything — `PROVIDER`/`VERTICAL` are accepted but silently behave like `NONE`. GGR
-  (from `tbl_bet_summary`) supports the full set.
-- `vertical`/`providerId`: no-ops on DEPOSIT/WITHDRAW, but meaningful on GGR (and
-  BET/WIN once those ship) — `api.ts` always sends them (axios drops `undefined`
-  values), rather than branching per metric.
+  anything — `PROVIDER`/`VERTICAL` are accepted but silently behave like `NONE`.
+  BET/WIN/GGR (all from `tbl_bet_summary`) support the full set.
+- `vertical`/`providerId`: no-ops on DEPOSIT/WITHDRAW, meaningful on BET/WIN/GGR —
+  `api.ts` always sends them (axios drops `undefined` values), rather than branching
+  per metric.
 - **No `gameType` param at all** on the real API (unlike the earlier design doc), for
-  any metric. Only the mock generator still reads it, for the still-mocked BET/WIN
-  cards — GGR's `MetricConfig` (see `constants.ts`) intentionally omits the Game Type
-  filter and `sliceBy=GAME_TYPE` now that it's live.
+  any metric. `constants.ts`'s `MetricConfig`s all omit the Game Type filter and
+  `sliceBy=GAME_TYPE` accordingly — only the mock generator still knows how to
+  produce GAME_TYPE data, unreachable through the UI as it stands (see "Adding a 6th
+  metric" below for why it's still there).
 - Every response (success or error) is wrapped in an envelope — see
   [`src/api/types/envelope.ts`](src/api/types/envelope.ts) — read the payload off
   `data`, the error off `error.details`, never off the top level.
@@ -54,35 +56,38 @@ identical in sparsity. Not currently gap-filled client-side; see Open items.
 with one global switch:
 
 ```ts
-const LIVE_METRICS: ReadonlySet<TrendMetric> = new Set(["DEPOSIT", "WITHDRAW", "GGR"])
+const LIVE_METRICS: ReadonlySet<TrendMetric> = new Set([
+  "DEPOSIT", "WITHDRAW", "GGR", "BET", "WIN",
+])
 const USE_MOCK_API = import.meta.env.VITE_USE_MOCK_API !== "false"
 ```
 
-- `LIVE_METRICS` — which metrics have somewhere real to call. BET/WIN aren't in it, so
-  they **always** use mock data regardless of the env flag (the real endpoint 501s
-  them today).
+- `LIVE_METRICS` — which metrics have somewhere real to call. All 5 are in it now, but
+  it's kept rather than deleted: a 6th metric starts here, and it's the one flag to
+  flip back if a metric ever needs to fall back to mock (a backend regression, a
+  staging environment missing one endpoint, etc.).
 - `USE_MOCK_API` — a force-mock override for local dev without a reachable backend.
-  Only matters for metrics that are in `LIVE_METRICS`.
+  Applies to any/all metrics in `LIVE_METRICS` when set.
 - `api.ts` — real axios call to `GET /api/player-trends/:accId`, unwraps the envelope,
   throws `error.details` (or the axios error message) on failure.
 - `mock-data.ts` — deterministic generator (seeded PRNG keyed on account+metric+filters,
   not `Math.random()`) so a given filter combo renders a stable-looking chart instead of
   jumping around on refetch. Still returns the same flat single-metric shape as the
-  real API, just for whichever metric is requested.
+  real API, just for whichever metric is requested. Kept in full (not deleted now that
+  nothing's mocked) as the fastest path to a working UI for whatever metric #6 turns
+  out to be, and as the local-dev fallback via `USE_MOCK_API`.
 - Every hook/component calls `getPlayerTrends()` from `service.ts`, never `api.ts` or
   `mock-data.ts` directly.
 
-**To exercise the real DEPOSIT/WITHDRAW/GGR calls:** set `VITE_USE_MOCK_API=false` in
-`.env` once `VITE_API_BASE_URL` points at a reachable backend. BET/WIN keep working
-exactly as before (mocked) either way. **When BET/WIN ship**, add them to
-`LIVE_METRICS` — no other code changes needed, same as the original one-line-change
-intent, just scoped per metric now instead of globally.
+**To exercise the real calls:** set `VITE_USE_MOCK_API=false` in `.env` once
+`VITE_API_BASE_URL` points at a reachable backend — this now applies to all 5 metrics.
 
-One thing still faked: `mock-data.ts`'s `MOCK_GAME_TYPE_OPTIONS`, used by the Game Type
-filter dropdown on the still-mocked BET/WIN cards. Swap for a real lookup call if/when a
-game-types endpoint exists. **Provider is no longer mocked** — see "Provider search"
-below; `MOCK_PROVIDER_OPTIONS` in `mock-data.ts` now only feeds the mock generator's
-`sliceBy=PROVIDER` breakdown labels for BET/WIN, not any dropdown.
+`mock-data.ts`'s `MOCK_GAME_TYPE_OPTIONS`/`SLICE_VALUES.GAME_TYPE` are unreachable
+through the current UI (no live `MetricConfig` sets `sliceBy: "GAME_TYPE"` or exposes
+a Game Type filter — see `constants.ts`), left in place only in case a future metric
+needs the mock path for that dimension. `MOCK_PROVIDER_OPTIONS` similarly only feeds
+the mock generator's `sliceBy=PROVIDER` breakdown labels now — the actual Provider
+*filter* dropdown is real (see "Provider search" below), not mocked, for every metric.
 
 ## Provider search — a second API, a second axios instance
 
@@ -199,7 +204,10 @@ src/
                                  single-metric response shape as the real API
     service.ts                   per-metric mock/real routing (LIVE_METRICS +
                                  USE_MOCK_API) — call this, not api.ts/mock-data.ts
-    constants.ts                 per-metric config: title, color, which filters apply
+    constants.ts                 per-metric config: title, color, which filters apply,
+                                  countLabel (what a point's count means in a tooltip —
+                                  "txns" for the cashflow metrics, "bets" for the
+                                  gameplay ones, since they come from different tables)
     types.ts                     TrendFilterState
     utils.ts                     tidy points -> wide Recharts rows (+ a parallel
                                   countKeyFor column per series, for tooltips), default
@@ -230,6 +238,13 @@ src/
                                   a pie is unreadable well before the backend's own
                                   20+OTHER cardinality cap, so this caps tighter
         TrendTable.tsx            raw period x seriesKey table, for reading exact values
+        TrendTooltipContent.tsx    custom Tooltip `content` (not the default renderer)
+                                  shared by Line/Bar/Area — scrolls past ~4 rows
+                                  instead of listing every sliceBy value unbounded
+                                  (a `sliceBy=PROVIDER` breakdown can be 20+ series),
+                                  and labels each value's count with the metric's
+                                  countLabel ("bets" vs "txns") instead of one
+                                  hardcoded word for every metric
         types.ts                  shared SeriesChartProps + getSeriesColor(key, index):
                                   - named currency sliceKeys (SATS/USDC/USDT) always get
                                     their own fixed color regardless of position, so a
@@ -270,9 +285,9 @@ global state; both are passed through the URL query string since the full view o
 in a separate tab/document:
 
 - `MetricTrendCard` builds the expand link with `buildMetricTrendPath(metric,
-  accountId, filters)` — the card's *currently applied* filters (not just accountId)
-  are serialized into the URL, so the new tab opens already showing the same view
-  instead of resetting to defaults.
+  accountId, filters, chartType)` — the card's *currently applied* filters and its
+  currently selected chart type (not just accountId) are serialized into the URL, so
+  the new tab opens already showing the same view instead of resetting to Line/defaults.
 - `MetricTrendPage` reads them back with `parseFiltersFromSearchParams(searchParams)`
   and passes the result as `useMetricTrendState`'s `initialFilters` — this only seeds
   the *initial* state (a `useState` lazy initializer), it isn't a continuous two-way
@@ -284,24 +299,28 @@ in a separate tab/document:
   `undefined` and the page falls back to `useMetricTrendState`'s normal defaults rather
   than seeding broken state.
 
-**Chart type is presentation-only**, not a query param — it never touches
+**Chart type is presentation-only**, not a filter — it never touches
 `useMetricTrendState`/the backend request, it only picks which of the five chart
 components renders the same `rows`/`seriesKeys`. On the dashboard card it's local
-`useState` (defaults to `LINE`, resets on refresh). On the full-view page it lives in
-the URL (`?chartType=`) instead, via `useSearchParams`, so a chosen chart type survives
-a reload/share of that tab — same data, different question answered per component.
+`useState` (defaults to `LINE`, resets on a full page refresh of the dashboard). On
+the full-view page it lives in the URL (`?chartType=`) instead, via `useSearchParams`,
+so a chosen chart type survives a reload/share of that tab. The two are bridged at the
+one moment they need to be: `buildMetricTrendPath` reads the card's current
+`chartType` state and writes it into the expand link's `?chartType=`, so opening the
+full view shows whatever chart the card was already on instead of resetting to Line.
 
-## Adding a 6th metric, or moving BET/WIN to live
+## Adding a 6th metric
 
-GGR went through exactly this recently — a good reference if BET/WIN follow:
+GGR, then BET/WIN, went live in exactly this sequence — a good reference for whatever
+comes next:
 
 1. Extend the enums in `src/api/types/player-trends.ts` if the backend adds a new
    `TrendMetric`/`TrendSliceBy` value.
 2. Add (or update) its entry in `METRIC_CONFIGS` in `constants.ts` — title, color, which
-   `availableFilters`/`sliceByOptions` it actually supports on the real API. GGR got its
-   own `LIVE_GAMEPLAY_FILTERS`/`LIVE_GAMEPLAY_SLICE_BY` pair instead of reusing BET/WIN's
-   `GAMEPLAY_FILTERS`, because it drops `gameType`/`GAME_TYPE` (no real backend support)
-   that the still-mocked BET/WIN configs keep for their mock generator.
+   `availableFilters`/`sliceByOptions` it actually supports on the real API. If it
+   shares `tbl_bet_summary`'s dimension set (like BET/WIN/GGR all do), it can reuse the
+   existing `GAMEPLAY_FILTERS`/`GAMEPLAY_SLICE_BY` — those already exclude
+   `gameType`/`GAME_TYPE` since no real metric supports it yet.
 3. `mock-data.ts`'s `METRIC_VALUE_RANGE` needs a range for the new metric so the mock
    generator doesn't throw (harmless to leave in place even after the metric goes live —
    it's just unreachable unless `VITE_USE_MOCK_API` forces mock).
@@ -309,7 +328,8 @@ GGR went through exactly this recently — a good reference if BET/WIN follow:
    That's the step that actually flips a metric from mock to real.
 5. Check `api.ts` already forwards every param the newly-live metric needs. GGR needed
    `vertical`/`providerId` added to the request — they were previously omitted since
-   only DEPOSIT/WITHDRAW were live and neither uses them.
+   only DEPOSIT/WITHDRAW were live and neither uses them. BET/WIN reused the same
+   params without further changes once they shipped, since they'd already been added.
 
 Nothing else changes — `MetricTrendCard`, `TrendFilters`/`DateRangePopover`, and the
 dashboard grid are all driven off `METRIC_CONFIGS`, not hardcoded per metric.
@@ -363,10 +383,12 @@ Everything the date range needs lives in one widget:
   gaps client-side if a "no gaps" look is wanted — not implemented, noted per §5 there.
   Would live in `pivotPointsForChart` (`utils.ts`) if picked up later.
 - `gameType`/`GAME_TYPE` sliceBy: no real backend param or lookup table exists at all
-  (per api reference doc §9), for any metric — only the mock path for BET/WIN uses it.
-  Don't build a real Game Type filter against this API until that ships.
+  (per api reference doc §9), for any metric. Don't build a real Game Type filter
+  against this API until that ships — the mock path is the only thing that still
+  understands it, and no live `MetricConfig` exposes it in the UI.
 - `vertical`/`providerId` are no-ops on DEPOSIT/WITHDRAW specifically (meaningful on
-  GGR, and on BET/WIN once those ship) — worth remembering they won't silently start
-  filtering DEPOSIT/WITHDRAW even if someone adds those filter fields to
-  `CASHFLOW_FILTERS` later.
-- No provider/game-type lookup endpoint exists yet — filters use the mock lists above.
+  BET/WIN/GGR) — worth remembering they won't silently start filtering
+  DEPOSIT/WITHDRAW even if someone adds those filter fields to `CASHFLOW_FILTERS`
+  later.
+- No game-type lookup endpoint exists yet — that filter still uses the mock list
+  above (provider lookup is real now, see "Provider search").

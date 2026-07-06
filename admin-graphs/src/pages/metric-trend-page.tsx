@@ -136,6 +136,7 @@ export function MetricTrendPage() {
               seriesKeys={seriesKeys}
               color={config.color}
               valueLabel={config.title}
+              countLabel={config.countLabel}
               height={FULL_VIEW_CHART_HEIGHT}
             />
           )}

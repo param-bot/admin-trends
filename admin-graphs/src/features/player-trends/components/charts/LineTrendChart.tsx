@@ -10,12 +10,8 @@ import {
 } from "recharts"
 
 import { UNSLICED_KEY } from "../../utils"
-import {
-  formatValueWithCount,
-  getSeriesColor,
-  TOOLTIP_STYLE,
-  type SeriesChartProps,
-} from "./types"
+import { TrendTooltipContent } from "./TrendTooltipContent"
+import { getSeriesColor, type SeriesChartProps } from "./types"
 
 export function LineTrendChart({
   rows,
@@ -23,6 +19,7 @@ export function LineTrendChart({
   color,
   valueLabel,
   height = 260,
+  countLabel = "txns",
 }: SeriesChartProps) {
   const isSingleSeries =
     seriesKeys.length === 1 && seriesKeys[0] === UNSLICED_KEY
@@ -38,7 +35,7 @@ export function LineTrendChart({
           minTickGap={24}
         />
         <YAxis tick={{ fontSize: 11 }} width={48} />
-        <Tooltip contentStyle={TOOLTIP_STYLE} formatter={formatValueWithCount} />
+        <Tooltip content={<TrendTooltipContent countLabel={countLabel} />} />
         {!isSingleSeries && <Legend wrapperStyle={{ fontSize: 12 }} />}
         {seriesKeys.map((key, index) => (
           <Line
