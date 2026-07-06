@@ -75,7 +75,8 @@ export function SearchableSelect({
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
     if (!hasMore || isLoadingMore || !onLoadMore) return
     const target = event.currentTarget
-    const distanceFromBottom = target.scrollHeight - target.scrollTop - target.clientHeight
+    const distanceFromBottom =
+      target.scrollHeight - target.scrollTop - target.clientHeight
     if (distanceFromBottom < 48) {
       onLoadMore()
     }
@@ -89,8 +90,10 @@ export function SearchableSelect({
   // that's since been cleared, and page 1 without it doesn't include it), the
   // trigger falls back to showing the raw id instead of its name. There's no
   // "fetch by id" endpoint to resolve it properly either way.
-  const selectedOption = value == null ? null : options.find((option) => option.value === value)
-  const triggerText = value == null ? placeholder : (selectedOption?.label ?? value)
+  const selectedOption =
+    value == null ? null : options.find((option) => option.value === value)
+  const triggerText =
+    value == null ? placeholder : (selectedOption?.label ?? value)
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
@@ -101,7 +104,9 @@ export function SearchableSelect({
           disabled={disabled}
           className={cn("w-36 justify-between font-normal", triggerClassName)}
         >
-          <span className={cn("truncate", value == null && "text-muted-foreground")}>
+          <span
+            className={cn("truncate", value == null && "text-muted-foreground")}
+          >
             {triggerText}
           </span>
           <ChevronsUpDownIcon className="size-3.5 shrink-0 opacity-50" />
@@ -179,7 +184,9 @@ function SelectRow({
       onClick={onClick}
       className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm outline-none hover:bg-muted focus-visible:bg-muted"
     >
-      <CheckIcon className={cn("size-3.5 shrink-0", !selected && "invisible")} />
+      <CheckIcon
+        className={cn("size-3.5 shrink-0", !selected && "invisible")}
+      />
       <span className="truncate">{label}</span>
     </button>
   )

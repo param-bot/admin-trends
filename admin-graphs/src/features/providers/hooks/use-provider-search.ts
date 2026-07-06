@@ -30,7 +30,10 @@ export function useProviderSearch() {
   const options = useMemo(
     () =>
       (query.data?.pages ?? []).flatMap((page) =>
-        page.items.map((provider) => ({ value: provider.id, label: provider.name }))
+        page.items.map((provider) => ({
+          value: provider.id,
+          label: provider.name,
+        }))
       ),
     [query.data]
   )

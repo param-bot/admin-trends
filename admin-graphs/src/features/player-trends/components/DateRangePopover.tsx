@@ -1,6 +1,10 @@
 import { CalendarClock } from "lucide-react"
 import { useState } from "react"
-import { createStaticRanges, DateRangePicker, type Range } from "react-date-range"
+import {
+  createStaticRanges,
+  DateRangePicker,
+  type Range,
+} from "react-date-range"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -8,7 +12,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { DATE_PRESETS, endOfDay, matchDatePreset, startOfDay } from "../date-presets"
+import {
+  DATE_PRESETS,
+  endOfDay,
+  matchDatePreset,
+  startOfDay,
+} from "../date-presets"
 import type { TrendFilterState } from "../types"
 
 const RANGE_KEY = "selection"
@@ -33,12 +42,17 @@ interface DateRangePopoverProps {
 }
 
 function formatShort(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  })
 }
 
 function triggerLabel(value: TrendFilterState): string {
   const preset = matchDatePreset(value.startDate, value.endDate)
-  return preset ? preset.label : `${formatShort(value.startDate)} – ${formatShort(value.endDate)}`
+  return preset
+    ? preset.label
+    : `${formatShort(value.startDate)} – ${formatShort(value.endDate)}`
 }
 
 // Presets + a full calendar in one widget (react-date-range's DateRangePicker)

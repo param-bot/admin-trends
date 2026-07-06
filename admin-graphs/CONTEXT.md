@@ -219,6 +219,8 @@ src/
                                   startOfDay/endOfDay, matchDatePreset — library-
                                   agnostic; DateRangePopover is the only place that
                                   adapts these into react-date-range's shape
+    trend-summary.ts              buildTrendSummary(config, filters, rows, seriesKeys)
+                                  — pure function, no request, see "Trend summary" below
     hooks/
       use-player-trend.ts        TanStack Query hook
       use-metric-trend-state.ts  filters state + query + chart pivot, shared by the
@@ -256,6 +258,8 @@ src/
                                     because the backend caps sliceBy cardinality at 20 +
                                     an "OTHER" bucket, see player-trends-analytics.md §3)
       ChartTypeSheet.tsx          slide-over (shadcn Sheet) to pick chart type per graph
+      TrendSummaryDialog.tsx      centered modal (new Dialog primitive) with a written
+                                 readout of the current view — see "Trend summary" below
       TrendFilters.tsx           every filter EXCEPT the date range (interval, vertical,
                                  currencyType, providerId via ProviderSelect, gameType,
                                  sliceBy), driven by constants.ts config — applies live,
@@ -340,7 +344,7 @@ dashboard grid are all driven off `METRIC_CONFIGS`, not hardcoded per metric.
 `react-day-picker`, tried first — swapped out since it didn't hold up visually).
 Everything the date range needs lives in one widget:
 
-- **Presets** — Today, Yesterday, Last 7 days, Last 30 days, This month, Last month —
+- **Presets** — Today, Yesterday, Last 7 days, Last 3 months, This month, Last month, last 1 year —
   come from `date-presets.ts`'s `DATE_PRESETS`, a plain library-agnostic array of
   `{ label, getRange() }`. `DateRangePopover` is the *only* place that adapts them into
   react-date-range's `StaticRange` shape (via `createStaticRanges`) — if the picker
@@ -368,6 +372,46 @@ Everything the date range needs lives in one widget:
   `Select`s with a small fixed option set, so a "change" is already one deliberate
   action, unlike a date range which can involve multiple clicks before landing on the
   intended value.
+
+## Trend summary — a written readout, not an AI summary
+
+`TrendSummaryDialog` (the small document icon next to the chart-type picker) opens a
+centered `Dialog` with a plain-English readout of whatever's currently on screen.
+**Important: this is not an LLM-generated summary.** `trend-summary.ts`'s
+`buildTrendSummary()` is a pure, synchronous function over data already in memory
+(`rows`/`seriesKeys` from the same pivot the chart itself renders, plus `filters` and
+`config`) — no request, no external call, every number in it is an exact
+recomputation of what the chart is already showing, just phrased as sentences instead
+of a chart.
+
+What it computes — `buildTrendSummary()` returns structured data (`trend: { direction,
+sentence }`, `breakdown: { sentence, leadingKey, leadingColor }`), not pre-baked HTML,
+so `TrendSummaryDialog` can color-code them rather than just printing plain sentences:
+
+- **Stat tiles**: total (left-bordered in the metric's own `config.color`, tying it
+  back to the chart), average per bucket, peak bucket (amber-highlighted — value + its
+  `period` label, used as-is rather than reformatted, per the api reference doc's own
+  guidance that `period` is already the right display label per interval), and total
+  volume in the metric's `countLabel` unit (bets vs. txns).
+- **Trend**: compares the average of the first half of the loaded rows against the
+  second half — a deliberately simple heuristic (not a regression) chosen because it's
+  easy to state in one sentence and easy to verify by eye against the chart. Rendered
+  as a colored badge (green "Trending up" / rose "Trending down" / gray "Flat") next
+  to its sentence — direction only, not a judgment about whether up is good for this
+  particular metric. Only stated when there are ≥4 buckets; too few points to call a
+  trend otherwise.
+- **Breakdown**: only when `sliceBy != NONE` — names the leading and runner-up slice
+  by share of total, prefixed with a dot in the leading slice's actual chart color
+  (`getSeriesColor(key, index)`, the same function every chart uses) so it visually
+  matches the legend.
+- **Filter bullets**: rendered as outline `Badge` chips, not a bulleted list — the
+  applied date range/interval/currency/vertical/sliceBy in plain English, plus
+  provider/game-type filters shown by raw id (no "fetch by id" lookup exists to
+  resolve a provider's name here — same limitation noted for `SearchableSelect`).
+
+`SummaryBody` is split out from `TrendSummaryDialog` specifically so
+`buildTrendSummary()` only runs while the dialog is actually open/mounted, not on
+every parent re-render.
 
 ## Open items
 

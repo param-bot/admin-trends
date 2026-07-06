@@ -37,12 +37,20 @@ export function TrendTooltipContent({
 
   return (
     <div className="max-w-64 rounded-md border border-border bg-popover px-3 py-2 text-xs shadow-md">
-      {label != null && <p className="mb-1 font-medium text-popover-foreground">{label}</p>}
+      {label != null && (
+        <p className="mb-1 font-medium text-popover-foreground">{label}</p>
+      )}
       <div className="flex max-h-48 flex-col gap-1 overflow-y-auto pr-1">
         {payload.map((entry, index) => {
-          const numericValue = typeof entry.value === "number" ? entry.value : Number(entry.value) || 0
-          const dataKey = entry.dataKey != null ? String(entry.dataKey) : undefined
-          const count = dataKey ? entry.payload?.[countKeyFor(dataKey)] : undefined
+          const numericValue =
+            typeof entry.value === "number"
+              ? entry.value
+              : Number(entry.value) || 0
+          const dataKey =
+            entry.dataKey != null ? String(entry.dataKey) : undefined
+          const count = dataKey
+            ? entry.payload?.[countKeyFor(dataKey)]
+            : undefined
 
           return (
             <div key={dataKey ?? index} className="flex items-center gap-2">
@@ -53,7 +61,7 @@ export function TrendTooltipContent({
               <span className="min-w-0 flex-1 truncate text-popover-foreground">
                 {entry.name}
               </span>
-              <span className="shrink-0 tabular-nums text-popover-foreground">
+              <span className="shrink-0 text-popover-foreground tabular-nums">
                 {formatNumber(numericValue)}
                 {typeof count === "number" && ` (${count} ${countLabel})`}
               </span>

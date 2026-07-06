@@ -49,4 +49,3 @@ export function getSeriesColor(key: string, index: number): string {
   const hue = (index * GOLDEN_ANGLE_DEG) % 360
   return `oklch(0.7 0.16 ${hue.toFixed(1)})`
 }
-

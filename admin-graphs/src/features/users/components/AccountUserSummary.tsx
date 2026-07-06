@@ -115,7 +115,8 @@ export function AccountUserSummary({ accountId }: AccountUserSummaryProps) {
   if (isError || !user) {
     return (
       <div className="rounded-xl border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
-        No user found for account <span className="font-mono text-xs">{accountId}</span>
+        No user found for account{" "}
+        <span className="font-mono text-xs">{accountId}</span>
       </div>
     )
   }
@@ -134,7 +135,9 @@ export function AccountUserSummary({ accountId }: AccountUserSummaryProps) {
           <p className="mr-1 truncate text-sm font-semibold">{user.username}</p>
           <StatusBadge status={user.status} />
           <EmailVerifiedBadge verified={Boolean(user.is_email_verified)} />
-          {Boolean(user.is_internal) && <Badge variant="outline">Internal</Badge>}
+          {Boolean(user.is_internal) && (
+            <Badge variant="outline">Internal</Badge>
+          )}
         </div>
         <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
           <MailIcon className="size-3 shrink-0" />

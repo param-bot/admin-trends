@@ -18,6 +18,7 @@ import { DateRangePopover } from "@/features/player-trends/components/DateRangeP
 import { METRIC_CONFIGS } from "@/features/player-trends/constants"
 import { TrendChart } from "@/features/player-trends/components/TrendChart"
 import { TrendFilters } from "@/features/player-trends/components/TrendFilters"
+import { TrendSummaryDialog } from "@/features/player-trends/components/TrendSummaryDialog"
 import { useMetricTrendState } from "@/features/player-trends/hooks/use-metric-trend-state"
 import {
   buildDashboardPath,
@@ -97,6 +98,12 @@ export function MetricTrendPage() {
               <CardDescription>{config.description}</CardDescription>
             </div>
             <div className="flex items-center gap-3">
+              <TrendSummaryDialog
+                config={config}
+                filters={filters}
+                rows={rows}
+                seriesKeys={seriesKeys}
+              />
               <ChartTypeSheet
                 metricTitle={config.title}
                 value={chartType}
@@ -106,7 +113,11 @@ export function MetricTrendPage() {
           </div>
           <div className="flex flex-wrap items-end gap-3">
             <DateRangePopover value={filters} onApply={setFilters} />
-            <TrendFilters config={config} value={filters} onChange={setFilters} />
+            <TrendFilters
+              config={config}
+              value={filters}
+              onChange={setFilters}
+            />
           </div>
         </CardHeader>
         <CardContent>

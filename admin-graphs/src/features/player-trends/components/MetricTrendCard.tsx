@@ -18,6 +18,7 @@ import { ChartTypeSheet } from "./ChartTypeSheet"
 import { DateRangePopover } from "./DateRangePopover"
 import { TrendChart } from "./TrendChart"
 import { TrendFilters } from "./TrendFilters"
+import { TrendSummaryDialog } from "./TrendSummaryDialog"
 
 interface MetricTrendCardProps {
   accountId: string
@@ -48,13 +49,24 @@ export function MetricTrendCard({ accountId, config }: MetricTrendCardProps) {
             {isFetching && !isLoading && (
               <span className="text-xs text-muted-foreground">Refreshing…</span>
             )}
+            <TrendSummaryDialog
+              config={config}
+              filters={filters}
+              rows={rows}
+              seriesKeys={seriesKeys}
+            />
             <ChartTypeSheet
               metricTitle={config.title}
               value={chartType}
               onChange={setChartType}
             />
             <Link
-              to={buildMetricTrendPath(config.metric, accountId, filters, chartType)}
+              to={buildMetricTrendPath(
+                config.metric,
+                accountId,
+                filters,
+                chartType
+              )}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`Open ${config.title} in full view`}

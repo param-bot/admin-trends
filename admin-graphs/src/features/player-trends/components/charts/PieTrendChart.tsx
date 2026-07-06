@@ -46,7 +46,10 @@ function buildSlices(
       key,
       name: isSingleSeries ? valueLabel : key,
       value: rows.reduce((sum, row) => sum + (Number(row[key]) || 0), 0),
-      count: rows.reduce((sum, row) => sum + (Number(row[countKeyFor(key)]) || 0), 0),
+      count: rows.reduce(
+        (sum, row) => sum + (Number(row[countKeyFor(key)]) || 0),
+        0
+      ),
       fill: isSingleSeries ? color : getSeriesColor(key, index),
     }))
     .filter((slice) => slice.value > 0)
@@ -86,7 +89,8 @@ export function PieTrendChart({
   countLabel = "txns",
 }: SeriesChartProps) {
   const [activeKey, setActiveKey] = useState<string | null>(null)
-  const isSingleSeries = seriesKeys.length === 1 && seriesKeys[0] === UNSLICED_KEY
+  const isSingleSeries =
+    seriesKeys.length === 1 && seriesKeys[0] === UNSLICED_KEY
 
   const data = buildSlices(rows, seriesKeys, isSingleSeries, color, valueLabel)
   const total = data.reduce((sum, slice) => sum + slice.value, 0)
@@ -108,7 +112,11 @@ export function PieTrendChart({
     const { cx, cy } = viewBox
     return (
       <text x={cx} y={cy} textAnchor="middle">
-        <tspan x={cx} y={cy - 6} className="fill-foreground text-lg font-semibold">
+        <tspan
+          x={cx}
+          y={cy - 6}
+          className="fill-foreground text-lg font-semibold"
+        >
           {formatNumber(total)}
         </tspan>
         <tspan
@@ -129,9 +137,11 @@ export function PieTrendChart({
           <PieChart>
             <Tooltip
               formatter={(value, name, item: { payload?: PieSlice }) => {
-                const numericValue = typeof value === "number" ? value : Number(value) || 0
+                const numericValue =
+                  typeof value === "number" ? value : Number(value) || 0
                 const count = item.payload?.count
-                const countSuffix = typeof count === "number" ? `, ${count} ${countLabel}` : ""
+                const countSuffix =
+                  typeof count === "number" ? `, ${count} ${countLabel}` : ""
                 return [
                   `${formatNumber(numericValue)} (${((numericValue / total) * 100).toFixed(1)}%${countSuffix})`,
                   name,
@@ -154,7 +164,9 @@ export function PieTrendChart({
               startAngle={90}
               endAngle={-270}
               isAnimationActive={false}
-              onMouseEnter={(_, index) => setActiveKey(data[index]?.key ?? null)}
+              onMouseEnter={(_, index) =>
+                setActiveKey(data[index]?.key ?? null)
+              }
               onMouseLeave={() => setActiveKey(null)}
             >
               {data.map((slice) => (
@@ -163,7 +175,9 @@ export function PieTrendChart({
                   fill={slice.fill}
                   stroke="var(--card)"
                   strokeWidth={2}
-                  opacity={activeKey === null || activeKey === slice.key ? 1 : 0.35}
+                  opacity={
+                    activeKey === null || activeKey === slice.key ? 1 : 0.35
+                  }
                 />
               ))}
               <RechartsLabel content={renderCenterLabel} position="center" />
@@ -180,7 +194,9 @@ export function PieTrendChart({
           <li
             key={slice.key}
             className="flex cursor-default items-center gap-2 rounded-md px-1.5 py-1 text-xs transition-opacity"
-            style={{ opacity: activeKey === null || activeKey === slice.key ? 1 : 0.5 }}
+            style={{
+              opacity: activeKey === null || activeKey === slice.key ? 1 : 0.5,
+            }}
             onMouseEnter={() => setActiveKey(slice.key)}
             onMouseLeave={() => setActiveKey(null)}
           >
@@ -188,8 +204,10 @@ export function PieTrendChart({
               className="size-2.5 shrink-0 rounded-full"
               style={{ background: slice.fill }}
             />
-            <span className="flex-1 truncate text-foreground">{slice.name}</span>
-            <span className="tabular-nums text-muted-foreground">
+            <span className="flex-1 truncate text-foreground">
+              {slice.name}
+            </span>
+            <span className="text-muted-foreground tabular-nums">
               {((slice.value / total) * 100).toFixed(1)}%
             </span>
           </li>

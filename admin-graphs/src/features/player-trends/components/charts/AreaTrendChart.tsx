@@ -38,7 +38,9 @@ export function AreaTrendChart({
         <Tooltip content={<TrendTooltipContent countLabel={countLabel} />} />
         {!isSingleSeries && <Legend wrapperStyle={{ fontSize: 12 }} />}
         {seriesKeys.map((key, index) => {
-          const strokeColor = isSingleSeries ? color : getSeriesColor(key, index)
+          const strokeColor = isSingleSeries
+            ? color
+            : getSeriesColor(key, index)
           return (
             <Area
               key={key}

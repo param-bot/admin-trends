@@ -137,7 +137,8 @@ export function parseFiltersFromSearchParams(
     interval: interval as TrendInterval,
     sliceBy: sliceBy as TrendSliceBy,
     currencyType:
-      currencyType && TREND_CURRENCY_TYPES.includes(currencyType as TrendCurrencyType)
+      currencyType &&
+      TREND_CURRENCY_TYPES.includes(currencyType as TrendCurrencyType)
         ? (currencyType as TrendCurrencyType)
         : undefined,
     vertical:

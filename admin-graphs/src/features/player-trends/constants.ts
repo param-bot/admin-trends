@@ -38,7 +38,12 @@ const GAMEPLAY_FILTERS: FilterField[] = [
   "providerId",
   "sliceBy",
 ]
-const GAMEPLAY_SLICE_BY: TrendSliceBy[] = ["NONE", "CURRENCY", "PROVIDER", "VERTICAL"]
+const GAMEPLAY_SLICE_BY: TrendSliceBy[] = [
+  "NONE",
+  "CURRENCY",
+  "PROVIDER",
+  "VERTICAL",
+]
 
 export const METRIC_CONFIGS: MetricConfig[] = [
   {

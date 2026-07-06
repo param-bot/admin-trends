@@ -45,7 +45,8 @@ export function TrendsDashboard() {
         <div>
           <h1 className="text-lg font-semibold">Player Trends</h1>
           <p className="text-sm text-muted-foreground">
-            Deposit, withdraw, bet, win and GGR trends for a single player account.
+            Deposit, withdraw, bet, win and GGR trends for a single player
+            account.
           </p>
         </div>
         <div className="flex items-end gap-2">
@@ -69,7 +70,11 @@ export function TrendsDashboard() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {METRIC_CONFIGS.map((config) => (
-          <MetricTrendCard key={config.metric} accountId={accountId} config={config} />
+          <MetricTrendCard
+            key={config.metric}
+            accountId={accountId}
+            config={config}
+          />
         ))}
       </div>
     </div>

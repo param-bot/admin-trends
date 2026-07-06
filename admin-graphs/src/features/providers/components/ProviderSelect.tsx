@@ -7,8 +7,15 @@ interface ProviderSelectProps {
 }
 
 export function ProviderSelect({ value, onChange }: ProviderSelectProps) {
-  const { search, setSearch, options, isLoading, isLoadingMore, hasMore, loadMore } =
-    useProviderSearch()
+  const {
+    search,
+    setSearch,
+    options,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    loadMore,
+  } = useProviderSearch()
 
   return (
     <SearchableSelect

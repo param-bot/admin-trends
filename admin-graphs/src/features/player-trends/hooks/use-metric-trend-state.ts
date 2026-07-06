@@ -27,7 +27,6 @@ export function useMetricTrendState(
   const points = query.data?.points ?? []
   const { rows, seriesKeys } = pivotPointsForChart(points)
 
-
   // console.log('filters: ', filters);
   return { filters, setFilters, rows, seriesKeys, ...query }
 }
