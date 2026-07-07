@@ -1,3 +1,12 @@
+import {
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Coins,
+  TrendingUp,
+  Trophy,
+  type LucideIcon,
+} from "lucide-react"
+
 import type { TrendMetric, TrendSliceBy } from "@/api/types/player-trends"
 
 // A filter field a graph's card can expose to the user.
@@ -9,6 +18,7 @@ export interface MetricConfig {
   title: string
   description: string
   color: string
+  icon: LucideIcon
   availableFilters: FilterField[]
   sliceByOptions: TrendSliceBy[]
   // What a point's `count` field actually counts — shown in chart tooltips
@@ -51,6 +61,7 @@ export const METRIC_CONFIGS: MetricConfig[] = [
     title: "Deposits",
     description: "Cash-in volume from the wallet ledger",
     color: "var(--chart-1)",
+    icon: ArrowDownToLine,
     availableFilters: CASHFLOW_FILTERS,
     sliceByOptions: CASHFLOW_SLICE_BY,
     countLabel: "txns",
@@ -60,6 +71,7 @@ export const METRIC_CONFIGS: MetricConfig[] = [
     title: "Withdrawals",
     description: "Cash-out volume from the wallet ledger",
     color: "var(--chart-2)",
+    icon: ArrowUpFromLine,
     availableFilters: CASHFLOW_FILTERS,
     sliceByOptions: CASHFLOW_SLICE_BY,
     countLabel: "txns",
@@ -69,6 +81,7 @@ export const METRIC_CONFIGS: MetricConfig[] = [
     title: "Bet Volume",
     description: "Total amount wagered",
     color: "var(--chart-3)",
+    icon: Coins,
     availableFilters: GAMEPLAY_FILTERS,
     sliceByOptions: GAMEPLAY_SLICE_BY,
     countLabel: "bets",
@@ -78,6 +91,7 @@ export const METRIC_CONFIGS: MetricConfig[] = [
     title: "Win Volume",
     description: "Total amount won",
     color: "var(--chart-4)",
+    icon: Trophy,
     availableFilters: GAMEPLAY_FILTERS,
     sliceByOptions: GAMEPLAY_SLICE_BY,
     countLabel: "wins",
@@ -87,6 +101,7 @@ export const METRIC_CONFIGS: MetricConfig[] = [
     title: "GGR",
     description: "Gross gaming revenue (bet − win)",
     color: "var(--chart-5)",
+    icon: TrendingUp,
     availableFilters: GAMEPLAY_FILTERS,
     sliceByOptions: GAMEPLAY_SLICE_BY,
     countLabel: "bets",

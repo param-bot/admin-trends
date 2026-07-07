@@ -1,4 +1,5 @@
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, CircleAlertIcon, InboxIcon } from "lucide-react"
+import { useMemo } from "react"
 import { Link, useParams, useSearchParams } from "react-router-dom"
 
 import {
@@ -19,7 +20,9 @@ import { METRIC_CONFIGS } from "@/features/player-trends/constants"
 import { TrendChart } from "@/features/player-trends/components/TrendChart"
 import { TrendFilters } from "@/features/player-trends/components/TrendFilters"
 import { TrendSummaryDialog } from "@/features/player-trends/components/TrendSummaryDialog"
+import { TrendDirectionChip } from "@/features/player-trends/components/trend-visuals"
 import { useMetricTrendState } from "@/features/player-trends/hooks/use-metric-trend-state"
+import { buildTrendSummary } from "@/features/player-trends/trend-summary"
 import {
   buildDashboardPath,
   parseFiltersFromSearchParams,
@@ -50,6 +53,15 @@ export function MetricTrendPage() {
   const initialFilters = parseFiltersFromSearchParams(searchParams)
   const { filters, setFilters, rows, seriesKeys, isLoading, isError } =
     useMetricTrendState(accountId, config, initialFilters)
+  const Icon = config.icon
+
+  const summary = useMemo(
+    () =>
+      !isLoading && rows.length > 0
+        ? buildTrendSummary(config, filters, rows, seriesKeys)
+        : null,
+    [config, filters, rows, seriesKeys, isLoading]
+  )
 
   const handleChartTypeChange = (next: ChartType) => {
     setSearchParams((prev) => {
@@ -91,13 +103,24 @@ export function MetricTrendPage() {
       </div>
 
       <Card className="flex-1">
-        <CardHeader>
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <CardTitle className="text-xl">{config.title}</CardTitle>
-              <CardDescription>{config.description}</CardDescription>
-            </div>
+        <CardHeader className="gap-3">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
+              <span
+                className="flex size-10 shrink-0 items-center justify-center rounded-xl"
+                style={{
+                  background: `color-mix(in oklch, ${config.color} 16%, transparent)`,
+                  color: config.color,
+                }}
+              >
+                <Icon className="size-5" />
+              </span>
+              <div>
+                <CardTitle className="text-xl">{config.title}</CardTitle>
+                <CardDescription>{config.description}</CardDescription>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-1">
               <TrendSummaryDialog
                 config={config}
                 filters={filters}
@@ -111,6 +134,21 @@ export function MetricTrendPage() {
               />
             </div>
           </div>
+
+          {summary?.hasData && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-2xl font-semibold tabular-nums text-foreground">
+                {summary.totalLabel}
+              </span>
+              <span className="text-xs text-muted-foreground">total</span>
+              {summary.trend && (
+                <TrendDirectionChip direction={summary.trend.direction} />
+              )}
+            </div>
+          )}
+
+          <div className="h-px bg-border/70" />
+
           <div className="flex flex-wrap items-end gap-3">
             <DateRangePopover value={filters} onApply={setFilters} />
             <TrendFilters
@@ -128,16 +166,18 @@ export function MetricTrendPage() {
             />
           ) : isError ? (
             <div
-              className="flex items-center justify-center text-sm text-destructive"
+              className="flex flex-col items-center justify-center gap-2 text-sm text-destructive"
               style={{ height: FULL_VIEW_CHART_HEIGHT }}
             >
+              <CircleAlertIcon className="size-5" />
               Failed to load {config.title.toLowerCase()} trend.
             </div>
           ) : rows.length === 0 ? (
             <div
-              className="flex items-center justify-center text-sm text-muted-foreground"
+              className="flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground"
               style={{ height: FULL_VIEW_CHART_HEIGHT }}
             >
+              <InboxIcon className="size-5 text-muted-foreground/50" />
               No data for the selected filters.
             </div>
           ) : (

@@ -32,40 +32,51 @@ interface TrendFiltersProps {
   config: MetricConfig
   value: TrendFilterState
   onChange: (next: TrendFilterState) => void
+  // Grid view shows one shared Interval control above all 5 cards instead —
+  // set when that control is in play so this card doesn't show a second,
+  // conflicting one.
+  hideInterval?: boolean
 }
 
 // Everything except the date range — these apply live, straight to the query,
 // on every change. Start/End live in DateRangePopover instead, gated behind
 // an Apply button, since a datetime picker fires far more intermediate
 // values than a Select ever would.
-export function TrendFilters({ config, value, onChange }: TrendFiltersProps) {
+export function TrendFilters({
+  config,
+  value,
+  onChange,
+  hideInterval = false,
+}: TrendFiltersProps) {
   const has = (field: MetricConfig["availableFilters"][number]) =>
     config.availableFilters.includes(field)
 
   return (
     <div className="flex flex-wrap items-end gap-3">
-      <FilterField label="Interval">
-        <Select
-          value={value.interval}
-          onValueChange={(interval) =>
-            onChange({
-              ...value,
-              interval: interval as TrendFilterState["interval"],
-            })
-          }
-        >
-          <SelectTrigger size="sm" className="w-28">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {TREND_INTERVALS.map((interval) => (
-              <SelectItem key={interval} value={interval}>
-                {interval}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </FilterField>
+      {!hideInterval && (
+        <FilterField label="Interval">
+          <Select
+            value={value.interval}
+            onValueChange={(interval) =>
+              onChange({
+                ...value,
+                interval: interval as TrendFilterState["interval"],
+              })
+            }
+          >
+            <SelectTrigger size="sm" className="w-28">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TREND_INTERVALS.map((interval) => (
+                <SelectItem key={interval} value={interval}>
+                  {interval}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FilterField>
+      )}
 
       {has("vertical") && (
         <FilterField label="Vertical">
