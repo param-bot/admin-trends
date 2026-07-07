@@ -246,7 +246,7 @@ export function TrendsDashboard() {
             chartHeight={420}
           />
         ) : (
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
             {metricStates.map((state, index) => {
               const isTrailingOdd =
                 metricStates.length % 2 !== 0 &&

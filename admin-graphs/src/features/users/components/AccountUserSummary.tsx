@@ -155,7 +155,7 @@ export function AccountUserSummary({ accountId }: AccountUserSummaryProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-4 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
+      <div className="flex items-center gap-4 rounded-2xl border border-border bg-card px-5 py-5 shadow-md">
         <Skeleton className="size-14 shrink-0 rounded-full" />
         <div className="flex flex-1 flex-col gap-1.5">
           <Skeleton className="h-4 w-32" />
@@ -167,7 +167,7 @@ export function AccountUserSummary({ accountId }: AccountUserSummaryProps) {
 
   if (isError || !user) {
     return (
-      <div className="rounded-2xl border border-dashed border-border px-5 py-4 text-sm text-muted-foreground">
+      <div className="rounded-2xl border border-dashed border-border px-5 py-5 text-sm text-muted-foreground">
         No user found for account{" "}
         <span className="font-mono text-xs">{accountId}</span>
       </div>
@@ -179,7 +179,7 @@ export function AccountUserSummary({ accountId }: AccountUserSummaryProps) {
   const statusVariant = getStatusVariant(user.status)
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-card px-5 py-5 shadow-md">
       <div
         className="absolute inset-0 bg-linear-to-r from-primary/5 via-transparent to-transparent"
         aria-hidden

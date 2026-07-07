@@ -23,7 +23,7 @@ export function MetricKpiStrip({
   onFocusChange,
 }: MetricKpiStripProps) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
       {metrics.map((state) => (
         <KpiTile
           key={state.config.metric}
@@ -69,9 +69,11 @@ function KpiTile({
       type="button"
       onClick={onSelect}
       className={cn(
-        "flex cursor-pointer flex-col gap-2 rounded-2xl border p-3.5 text-left transition-colors outline-none",
+        "flex cursor-pointer flex-col gap-2 rounded-2xl border p-4 text-left shadow-sm transition-all outline-none",
         "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        focused ? "shadow-md" : "border-border bg-card/60 hover:bg-card"
+        focused
+          ? "shadow-md"
+          : "border-border bg-card/60 hover:bg-card hover:shadow-md"
       )}
       style={
         focused
