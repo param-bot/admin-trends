@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
-  CHART_TYPES,
+  isChartType,
   type ChartType,
 } from "@/features/player-trends/chart-types"
 import { ChartTypeSheet } from "@/features/player-trends/components/ChartTypeSheet"
@@ -30,10 +30,6 @@ import {
 
 const DEFAULT_ACCOUNT_ID = "acc_mdwxhkx7jxmwF7t7PsAEhL"
 const FULL_VIEW_CHART_HEIGHT = 560
-
-function isChartType(value: string | null): value is ChartType {
-  return CHART_TYPES.includes(value as ChartType)
-}
 
 export function MetricTrendPage() {
   const { metric } = useParams<{ metric: string }>()

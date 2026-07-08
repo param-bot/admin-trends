@@ -1,6 +1,10 @@
 export const CHART_TYPES = ["LINE", "BAR", "AREA", "PIE", "TABLE"] as const
 export type ChartType = (typeof CHART_TYPES)[number]
 
+export function isChartType(value: string | null): value is ChartType {
+  return CHART_TYPES.includes(value as ChartType)
+}
+
 export const CHART_TYPE_META: Record<
   ChartType,
   { label: string; description: string }

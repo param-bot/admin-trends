@@ -1,4 +1,3 @@
-import { LineChartIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 
@@ -11,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { isChartType, type ChartType } from "@/features/player-trends/chart-types"
 import { AccountIdSwitcher } from "@/features/player-trends/components/AccountIdSwitcher"
 import { DateRangePopover } from "@/features/player-trends/components/DateRangePopover"
 import { MetricKpiStrip } from "@/features/player-trends/components/MetricKpiStrip"
@@ -37,6 +37,17 @@ const CONFIG_BY_METRIC = Object.fromEntries(
 
 type ViewMode = "focused" | "grid"
 
+function isTrendMetric(value: string | null): value is TrendMetric {
+  return METRIC_CONFIGS.some((config) => config.metric === value)
+}
+
+// Chart type is kept per-metric ("chartType_GGR", "chartType_BET", ...)
+// rather than one shared key, so switching the focused metric — or the
+// grid — doesn't make one metric's chosen chart type bleed into another's.
+function chartTypeParamKey(metric: TrendMetric): string {
+  return `chartType_${metric}`
+}
+
 function toMetricState(
   config: MetricConfig,
   hookState: ReturnType<typeof useMetricTrendState>
@@ -57,15 +68,21 @@ export function TrendsDashboard() {
   const [searchParams, setSearchParams] = useSearchParams()
   const accountId = searchParams.get("accountId") ?? DEFAULT_ACCOUNT_ID
 
-  // Writes the default into the URL on first load (rather than just falling
+  // Writes the defaults into the URL on first load (rather than just falling
   // back silently) so the address bar always reflects a complete, correct
-  // link — copying it before typing anything still points at the right account.
+  // link — copying it before touching anything still points at the same
+  // account and focused metric.
   useEffect(() => {
-    if (!searchParams.has("accountId")) {
+    if (!searchParams.has("accountId") || !searchParams.has("metric")) {
       setSearchParams(
         (prev) => {
           const nextParams = new URLSearchParams(prev)
-          nextParams.set("accountId", DEFAULT_ACCOUNT_ID)
+          if (!nextParams.has("accountId")) {
+            nextParams.set("accountId", DEFAULT_ACCOUNT_ID)
+          }
+          if (!nextParams.has("metric")) {
+            nextParams.set("metric", DEFAULT_FOCUSED_METRIC)
+          }
           return nextParams
         },
         { replace: true }
@@ -99,9 +116,10 @@ export function TrendsDashboard() {
     toMetricState(CONFIG_BY_METRIC.GGR, ggrState),
   ]
 
-  const [focusedMetric, setFocusedMetric] = useState<TrendMetric>(
-    DEFAULT_FOCUSED_METRIC
-  )
+  const metricParam = searchParams.get("metric")
+  const focusedMetric: TrendMetric = isTrendMetric(metricParam)
+    ? metricParam
+    : DEFAULT_FOCUSED_METRIC
   const [viewMode, setViewMode] = useState<ViewMode>("focused")
 
   const focusedState =
@@ -111,8 +129,29 @@ export function TrendsDashboard() {
   // Picking a metric from the strip always jumps back to the focused panel
   // — that's the point of clicking it — even if you were looking at the grid.
   const handleFocusChange = (metric: TrendMetric) => {
-    setFocusedMetric(metric)
+    setSearchParams((prev) => {
+      const nextParams = new URLSearchParams(prev)
+      nextParams.set("metric", metric)
+      return nextParams
+    })
     setViewMode("focused")
+  }
+
+  // Chart type lives in the URL (per metric) instead of component state —
+  // a card's local state resets whenever it remounts, which happens on
+  // every Focused/Grid toggle, making a chosen chart type seem to
+  // randomly "disappear". Reading it from the URL survives that.
+  const getChartType = (metric: TrendMetric): ChartType => {
+    const raw = searchParams.get(chartTypeParamKey(metric))
+    return isChartType(raw) ? raw : "LINE"
+  }
+
+  const handleChartTypeChange = (metric: TrendMetric) => (next: ChartType) => {
+    setSearchParams((prev) => {
+      const nextParams = new URLSearchParams(prev)
+      nextParams.set(chartTypeParamKey(metric), next)
+      return nextParams
+    })
   }
 
   // Grid view's one shared date range + interval control — provider,
@@ -249,6 +288,8 @@ export function TrendsDashboard() {
             accountId={accountId}
             state={focusedState}
             chartHeight={420}
+            chartType={getChartType(focusedMetric)}
+            onChartTypeChange={handleChartTypeChange(focusedMetric)}
           />
         ) : (
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -263,6 +304,8 @@ export function TrendsDashboard() {
                   state={state}
                   hideDateAndInterval
                   className={isTrailingOdd ? "lg:col-span-2" : undefined}
+                  chartType={getChartType(state.config.metric)}
+                  onChartTypeChange={handleChartTypeChange(state.config.metric)}
                 />
               )
             })}

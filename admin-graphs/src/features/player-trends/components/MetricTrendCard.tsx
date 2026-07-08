@@ -1,5 +1,5 @@
 import { CircleAlertIcon, InboxIcon, Maximize2 } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 import { Link } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
@@ -35,6 +35,11 @@ interface MetricTrendCardProps {
   // Lets the grid give a trailing odd-one-out card a col-span, instead of
   // leaving it stranded next to empty grid space.
   className?: string
+  // Owned by the dashboard (URL-backed, keyed per metric) rather than local
+  // state, so a chosen chart type survives view-mode toggles and refreshes
+  // instead of resetting whenever this card remounts.
+  chartType: ChartType
+  onChartTypeChange: (chartType: ChartType) => void
 }
 
 // Purely presentational — the dashboard owns each metric's fetch/filter
@@ -46,6 +51,8 @@ export function MetricTrendCard({
   chartHeight = 260,
   hideDateAndInterval = false,
   className,
+  chartType,
+  onChartTypeChange,
 }: MetricTrendCardProps) {
   const {
     config,
@@ -57,7 +64,6 @@ export function MetricTrendCard({
     isFetching,
     isError,
   } = state
-  const [chartType, setChartType] = useState<ChartType>("LINE")
   const Icon = config.icon
 
   // The same numbers TrendSummaryDialog computes, surfaced right on the card
@@ -102,7 +108,7 @@ export function MetricTrendCard({
             <ChartTypeSheet
               metricTitle={config.title}
               value={chartType}
-              onChange={setChartType}
+              onChange={onChartTypeChange}
             />
             <Button variant="ghost" size="icon-sm" asChild>
               <Link

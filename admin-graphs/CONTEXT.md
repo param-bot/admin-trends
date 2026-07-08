@@ -281,12 +281,19 @@ src/
 
 No barrel `index.ts` files anywhere — import from the concrete file.
 
-**Card <-> full view**: `MetricTrendCard` and `MetricTrendPage` both call
-`useMetricTrendState(accountId, config, initialFilters?)` rather than duplicating
-filter/query logic — adding a field to `TrendFilterState` or changing the pivot only
-means touching that one hook. Neither `accountId` nor the current filters live in
-global state; both are passed through the URL query string since the full view opens
-in a separate tab/document:
+**Card <-> full view**: both call `useMetricTrendState(accountId, config,
+initialFilters?)` rather than duplicating filter/query logic — adding a field to
+`TrendFilterState` or changing the pivot only means touching that one hook — but they
+call it at different levels. `MetricTrendPage` (the full view, its own route/tab) calls
+it directly. `TrendsDashboard` calls it once per metric (five fixed, named calls — not
+a loop, so the Rules of Hooks stay happy) and lifts the results into a
+`MetricTrendState[]`, handing each one down as a plain prop; `MetricTrendCard` itself
+is purely presentational and owns no fetch state at all. That lift is what lets the
+KPI strip and whichever detail card is on screen (focused or grid) share one fetch per
+metric instead of each re-fetching independently.
+
+Neither `accountId` nor the current filters live in global state; both are passed
+through the URL query string since the full view opens in a separate tab/document:
 
 - `MetricTrendCard` builds the expand link with `buildMetricTrendPath(metric,
   accountId, filters, chartType)` — the card's *currently applied* filters and its
@@ -305,13 +312,20 @@ in a separate tab/document:
 
 **Chart type is presentation-only**, not a filter — it never touches
 `useMetricTrendState`/the backend request, it only picks which of the five chart
-components renders the same `rows`/`seriesKeys`. On the dashboard card it's local
-`useState` (defaults to `LINE`, resets on a full page refresh of the dashboard). On
-the full-view page it lives in the URL (`?chartType=`) instead, via `useSearchParams`,
-so a chosen chart type survives a reload/share of that tab. The two are bridged at the
-one moment they need to be: `buildMetricTrendPath` reads the card's current
-`chartType` state and writes it into the expand link's `?chartType=`, so opening the
-full view shows whatever chart the card was already on instead of resetting to Line.
+components renders the same `rows`/`seriesKeys`. `MetricTrendCard` no longer owns any
+chart-type state itself (it did originally, as local `useState`) — both the dashboard
+and the full-view page now keep it in the URL, and `MetricTrendCard` takes it as a
+required `chartType`/`onChartTypeChange` prop pair instead. This was a deliberate
+fix: local `useState` inside the card reset to `LINE` on every remount, and the
+dashboard's Focused/Grid toggle remounts cards on every switch (they're two different
+branches of a ternary) — so a chosen chart type would silently "disappear" going back
+and forth. On `TrendsDashboard` the key is per metric (`chartType_GGR`,
+`chartType_BET`, ...), not one shared key, so switching the focused metric — or
+looking at the grid — doesn't leak one metric's chart choice into another's. On
+`MetricTrendPage` it's the simpler single `?chartType=`, since that page only ever
+shows one metric. `buildMetricTrendPath` reads the card's current chart type from
+this same URL-backed value and writes it into the expand link, so opening the full
+view still shows whatever chart the card was already on.
 
 ## Adding a 6th metric
 
