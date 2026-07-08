@@ -152,7 +152,12 @@ export function TrendsDashboard() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <LineChartIcon className="size-4.5" />
+              {/* <LineChartIcon className="size-4.5" /> */}
+              <img 
+                src="Logo.svg"
+                alt="Minibet Logo"
+                className="size-4.5"
+              />
             </span>
             <div>
               <h1 className="font-heading text-base leading-tight font-semibold">

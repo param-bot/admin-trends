@@ -43,7 +43,7 @@ export function ChartTypeSheet({
       <SheetTrigger
         aria-label={`Change ${metricTitle} chart type`}
         title="Change chart type"
-        className="text-muted-foreground transition-colors hover:text-foreground"
+        className="text-foreground transition-colors hover:text-foreground hover:bg-muted p-1 cursor-pointer rounded-md"
       >
         <SlidersHorizontal className="size-4" />
       </SheetTrigger>

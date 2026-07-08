@@ -26,8 +26,17 @@ export const MOCK_GAME_TYPE_OPTIONS = [
   { id: "sportsbook", label: "Sportsbook" },
 ]
 
+export const MOCK_GAME_OPTIONS = [
+  { id: "sweet-bonanza", label: "Sweet Bonanza" },
+  { id: "gates-of-olympus", label: "Gates of Olympus" },
+  { id: "crazy-time", label: "Crazy Time" },
+  { id: "blackjack-live", label: "Blackjack Live" },
+  { id: "book-of-dead", label: "Book of Dead" },
+]
+
 const SLICE_VALUES: Record<Exclude<TrendSliceBy, "NONE">, string[]> = {
   GAME_TYPE: MOCK_GAME_TYPE_OPTIONS.map((option) => option.label),
+  GAME: MOCK_GAME_OPTIONS.map((option) => option.label),
   CURRENCY: ["REAL", "BONUS"],
   PROVIDER: MOCK_PROVIDER_OPTIONS.map((option) => option.label),
   VERTICAL: ["CASINO", "SPORTS"],

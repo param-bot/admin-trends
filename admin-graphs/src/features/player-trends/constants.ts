@@ -36,12 +36,11 @@ export interface MetricConfig {
 const CASHFLOW_FILTERS: FilterField[] = ["sliceBy"]
 const CASHFLOW_SLICE_BY: TrendSliceBy[] = ["NONE", "CURRENCY"]
 
-// BET/WIN/GGR all come from tbl_bet_summary and are all live now — same
-// dimension set, minus gameType/GAME_TYPE: the real backend has no gameType
-// param or lookup table at all yet, for any metric (see
-// player-trends-api-reference.md §9). mock-data.ts still has GAME_TYPE mock
-// support (SLICE_VALUES.GAME_TYPE, MOCK_GAME_TYPE_OPTIONS) in case a future
-// metric needs the mock path again, but nothing here exposes it in the UI.
+// BET/WIN/GGR all come from tbl_bet_summary and are all live, with the
+// backend's game/game-type lookup table now shipped too — sliceBy=GAME and
+// sliceBy=GAME_TYPE are real breakdown dimensions here. Breaking down by
+// either one hides the Vertical filter (see TrendFilters) since a specific
+// game already implies a vertical.
 const GAMEPLAY_FILTERS: FilterField[] = [
   "vertical",
   "currencyType",
@@ -53,6 +52,8 @@ const GAMEPLAY_SLICE_BY: TrendSliceBy[] = [
   "CURRENCY",
   "PROVIDER",
   "VERTICAL",
+  "GAME_TYPE",
+  "GAME",
 ]
 
 export const METRIC_CONFIGS: MetricConfig[] = [

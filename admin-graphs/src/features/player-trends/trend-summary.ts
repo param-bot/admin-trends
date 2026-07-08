@@ -30,6 +30,7 @@ const SLICE_NOUN: Record<string, string> = {
   PROVIDER: "provider",
   VERTICAL: "vertical",
   GAME_TYPE: "game type",
+  GAME: "game",
 }
 
 function formatNumber(value: number): string {

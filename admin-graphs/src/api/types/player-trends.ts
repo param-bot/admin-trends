@@ -15,17 +15,15 @@ export type TrendMetric = (typeof TREND_METRICS)[number]
 export const TREND_INTERVALS = ["HOUR", "DAY", "WEEK", "MONTH"] as const
 export type TrendInterval = (typeof TREND_INTERVALS)[number]
 
-// GAME_TYPE isn't in the real backend's sliceBy enum at all yet (blocked on a
-// lookup table — see the api reference doc's §9 roadmap), for any metric. No
-// live MetricConfig (constants.ts) offers it as a "Break down by" option —
-// it only still exists here/in mock-data.ts in case a future metric needs
-// the mock path. Never sent to the real endpoint.
+// GAME and GAME_TYPE are now live breakdown dimensions for BET/WIN/GGR (the
+// backend's lookup table shipped — see constants.ts's GAMEPLAY_SLICE_BY).
 export const TREND_SLICE_BY = [
   "NONE",
-  "GAME_TYPE",
   "CURRENCY",
   "PROVIDER",
   "VERTICAL",
+  "GAME_TYPE",
+  "GAME",
 ] as const
 export type TrendSliceBy = (typeof TREND_SLICE_BY)[number]
 
@@ -50,9 +48,9 @@ export interface PlayerTrendsQuery {
   // on BET/WIN/GGR, which all carry the full tbl_bet_summary dimension set.
   vertical?: TrendVertical
   providerId?: string
-  // Not a real query param at all (no GAME_TYPE lookup table server-side, for
-  // any metric) — only ever read by the mock generator, and no live
-  // MetricConfig exposes a UI control that would set this.
+  // A filter-to-one-value param (distinct from sliceBy=GAME_TYPE, which
+  // breaks down by it instead) — not a real query param yet; only read by
+  // the mock generator, and no live MetricConfig exposes a UI control for it.
   gameType?: string
 }
 

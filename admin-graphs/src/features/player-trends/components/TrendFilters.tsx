@@ -23,9 +23,17 @@ const ALL_VALUE = "ALL"
 const SLICE_BY_LABELS: Record<string, string> = {
   NONE: "No breakdown",
   GAME_TYPE: "Game type",
+  GAME: "Game",
   CURRENCY: "Currency",
   PROVIDER: "Provider",
   VERTICAL: "Vertical",
+}
+
+// Breaking down by a specific game (or game type) already implies a
+// vertical — Vertical stops being a meaningful filter alongside it, so it's
+// hidden rather than left showing a control that no longer does anything.
+function hidesVertical(sliceBy: TrendFilterState["sliceBy"]): boolean {
+  return sliceBy === "GAME" || sliceBy === "GAME_TYPE"
 }
 
 interface TrendFiltersProps {
@@ -78,7 +86,7 @@ export function TrendFilters({
         </FilterField>
       )}
 
-      {has("vertical") && (
+      {has("vertical") && !hidesVertical(value.sliceBy) && (
         <FilterField label="Vertical">
           <Select
             value={value.vertical ?? ALL_VALUE}
@@ -177,12 +185,16 @@ export function TrendFilters({
         <FilterField label="Break down by">
           <Select
             value={value.sliceBy}
-            onValueChange={(sliceBy) =>
+            onValueChange={(sliceBy) => {
+              const nextSliceBy = sliceBy as TrendFilterState["sliceBy"]
               onChange({
                 ...value,
-                sliceBy: sliceBy as TrendFilterState["sliceBy"],
+                sliceBy: nextSliceBy,
+                vertical: hidesVertical(nextSliceBy)
+                  ? undefined
+                  : value.vertical,
               })
-            }
+            }}
           >
             <SelectTrigger size="sm" className="w-36">
               <SelectValue />
