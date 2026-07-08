@@ -1,6 +1,7 @@
 import {
   AreaChart,
   BarChart3,
+  LayoutGrid,
   LineChart,
   PieChart,
   SlidersHorizontal,
@@ -25,6 +26,7 @@ const CHART_TYPE_ICONS: Record<ChartType, typeof LineChart> = {
   AREA: AreaChart,
   PIE: PieChart,
   TABLE: TableIcon,
+  MINI: LayoutGrid,
 }
 
 interface ChartTypeSheetProps {

@@ -1,4 +1,11 @@
-export const CHART_TYPES = ["LINE", "BAR", "AREA", "PIE", "TABLE"] as const
+export const CHART_TYPES = [
+  "LINE",
+  "BAR",
+  "AREA",
+  "PIE",
+  "TABLE",
+  "MINI",
+] as const
 export type ChartType = (typeof CHART_TYPES)[number]
 
 export function isChartType(value: string | null): value is ChartType {
@@ -30,5 +37,10 @@ export const CHART_TYPE_META: Record<
     label: "Table",
     description:
       "Best for reading exact values instead of estimating off a chart",
+  },
+  MINI: {
+    label: "Mini charts",
+    description:
+      'Best for a "Break down by" with many values (e.g. Game) — one small chart per item, ranked top N',
   },
 }

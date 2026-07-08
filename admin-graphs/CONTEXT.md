@@ -225,9 +225,11 @@ src/
       use-player-trend.ts        TanStack Query hook
       use-metric-trend-state.ts  filters state + query + chart pivot, shared by the
                                  dashboard card and the full-view page
-    chart-types.ts                CHART_TYPES (LINE/BAR/AREA/PIE/TABLE) + per-type label/description
+    chart-types.ts                CHART_TYPES (LINE/BAR/AREA/PIE/TABLE/MINI) + per-type
+                                  label/description + isChartType() type guard (shared by
+                                  the dashboard and MetricTrendPage's URL parsing)
     components/
-      TrendChart.tsx             dispatches to the chart matching `chartType`, all five
+      TrendChart.tsx             dispatches to the chart matching `chartType`, all six
                                  share the same rows/seriesKeys/color/height props
       charts/
         LineTrendChart.tsx        one line per seriesKey
@@ -239,6 +241,17 @@ src/
                                   everything past the top 6 slices into "Other (N)" —
                                   a pie is unreadable well before the backend's own
                                   20+OTHER cardinality cap, so this caps tighter
+        MiniMultiplesChart.tsx    one small chart per seriesKey instead of one big chart
+                                  with N overlapping lines + a legend — the fix for
+                                  breakdowns with many values (Game especially, easily
+                                  dozens of titles) where every other chart type turns
+                                  into noise. Ranks by total and caps to a user-picked
+                                  Top 5/10/20 (own local `useState`, not wired into
+                                  TrendFilterState — it reshapes the *display* of already-
+                                  fetched rows, it doesn't change the query). Each tile
+                                  reuses MetricSparkline for its own per-item trend line.
+                                  With no breakdown active (isSingleSeries) it shows a
+                                  hint to pick one instead of a single, pointless tile.
         TrendTable.tsx            raw period x seriesKey table, for reading exact values
         TrendTooltipContent.tsx    custom Tooltip `content` (not the default renderer)
                                   shared by Line/Bar/Area — scrolls past ~4 rows
