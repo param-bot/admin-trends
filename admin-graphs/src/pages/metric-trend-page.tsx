@@ -1,7 +1,14 @@
-import { ArrowLeft, CircleAlertIcon, InboxIcon } from "lucide-react"
-import { useMemo } from "react"
+import {
+  ArrowLeft,
+  CircleAlertIcon,
+  DownloadIcon,
+  InboxIcon,
+  Loader2Icon,
+} from "lucide-react"
+import { useMemo, useRef, useState } from "react"
 import { Link, useParams, useSearchParams } from "react-router-dom"
 
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -21,6 +28,8 @@ import { TrendChart } from "@/features/player-trends/components/TrendChart"
 import { TrendFilters } from "@/features/player-trends/components/TrendFilters"
 import { TrendSummaryDialog } from "@/features/player-trends/components/TrendSummaryDialog"
 import { TrendDirectionChip } from "@/features/player-trends/components/trend-visuals"
+import { exportChartToPdf } from "@/features/player-trends/export-chart-pdf"
+import { exportTableToCsv } from "@/features/player-trends/export-table-csv"
 import { useMetricTrendState } from "@/features/player-trends/hooks/use-metric-trend-state"
 import { buildTrendSummary } from "@/features/player-trends/trend-summary"
 import {
@@ -50,6 +59,8 @@ export function MetricTrendPage() {
   const { filters, setFilters, rows, seriesKeys, isLoading, isError } =
     useMetricTrendState(accountId, config, initialFilters)
   const Icon = config.icon
+  const chartAreaRef = useRef<HTMLDivElement>(null)
+  const [isExporting, setIsExporting] = useState(false)
 
   const summary = useMemo(
     () =>
@@ -65,6 +76,40 @@ export function MetricTrendPage() {
       nextParams.set("chartType", next)
       return nextParams
     })
+  }
+
+  const datedFilename = (extension: string) =>
+    `${config.metric.toLowerCase()}-trend-${new Date().toISOString().slice(0, 10)}.${extension}`
+
+  const handleDownload = async () => {
+    // The table view has no meaningful visual to rasterize — it's already
+    // just the raw numbers. A CSV of that data is more useful than a
+    // screenshot of a table, and needs no capture pipeline at all.
+    if (chartType === "TABLE") {
+      exportTableToCsv({
+        rows,
+        seriesKeys,
+        valueLabel: config.title,
+        filename: datedFilename("csv"),
+      })
+      return
+    }
+
+    if (!chartAreaRef.current || isExporting) return
+    setIsExporting(true)
+    try {
+      const exportSummary = buildTrendSummary(config, filters, rows, seriesKeys)
+      await exportChartToPdf({
+        element: chartAreaRef.current,
+        metricTitle: config.title,
+        dateRangeLabel: exportSummary.dateRangeLabel,
+        totalLabel: exportSummary.hasData ? exportSummary.totalLabel : undefined,
+        trendSentence: exportSummary.trend?.sentence,
+        filename: datedFilename("pdf"),
+      })
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   if (!isValidMetric) {
@@ -128,6 +173,20 @@ export function MetricTrendPage() {
                 value={chartType}
                 onChange={handleChartTypeChange}
               />
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={handleDownload}
+                disabled={isLoading || isExporting}
+                aria-label={`Download ${config.title} as ${chartType === "TABLE" ? "CSV" : "PDF"}`}
+                title={chartType === "TABLE" ? "Download CSV" : "Download PDF"}
+              >
+                {isExporting ? (
+                  <Loader2Icon className="size-4 animate-spin" />
+                ) : (
+                  <DownloadIcon className="size-4" />
+                )}
+              </Button>
             </div>
           </div>
 
@@ -155,38 +214,40 @@ export function MetricTrendPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <Skeleton
-              className="w-full"
-              style={{ height: FULL_VIEW_CHART_HEIGHT }}
-            />
-          ) : isError ? (
-            <div
-              className="flex flex-col items-center justify-center gap-2 text-sm text-destructive"
-              style={{ height: FULL_VIEW_CHART_HEIGHT }}
-            >
-              <CircleAlertIcon className="size-5" />
-              Failed to load {config.title.toLowerCase()} trend.
-            </div>
-          ) : rows.length === 0 ? (
-            <div
-              className="flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground"
-              style={{ height: FULL_VIEW_CHART_HEIGHT }}
-            >
-              <InboxIcon className="size-5 text-muted-foreground/50" />
-              No data for the selected filters.
-            </div>
-          ) : (
-            <TrendChart
-              chartType={chartType}
-              rows={rows}
-              seriesKeys={seriesKeys}
-              color={config.color}
-              valueLabel={config.title}
-              countLabel={config.countLabel}
-              height={FULL_VIEW_CHART_HEIGHT}
-            />
-          )}
+          <div ref={chartAreaRef} className="bg-card">
+            {isLoading ? (
+              <Skeleton
+                className="w-full"
+                style={{ height: FULL_VIEW_CHART_HEIGHT }}
+              />
+            ) : isError ? (
+              <div
+                className="flex flex-col items-center justify-center gap-2 text-sm text-destructive"
+                style={{ height: FULL_VIEW_CHART_HEIGHT }}
+              >
+                <CircleAlertIcon className="size-5" />
+                Failed to load {config.title.toLowerCase()} trend.
+              </div>
+            ) : rows.length === 0 ? (
+              <div
+                className="flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground"
+                style={{ height: FULL_VIEW_CHART_HEIGHT }}
+              >
+                <InboxIcon className="size-5 text-muted-foreground/50" />
+                No data for the selected filters.
+              </div>
+            ) : (
+              <TrendChart
+                chartType={chartType}
+                rows={rows}
+                seriesKeys={seriesKeys}
+                color={config.color}
+                valueLabel={config.title}
+                countLabel={config.countLabel}
+                height={FULL_VIEW_CHART_HEIGHT}
+              />
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
